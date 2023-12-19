@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  pikaji:
+    image: roganic/mypikaji:1.0
+    ports:
+      - "54892:8000"
+    environment:
+      - GUNICORN_CMD_ARGS=--timeout=120
+    volumes:
+      - ./data:/app/data
+
+
+  /share/Container/mypikaji/

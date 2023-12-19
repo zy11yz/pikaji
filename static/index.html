@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据搜索</title>
+    <!-- 引入 Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- 引入 Bootstrap Select CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.18/css/bootstrap-select.min.css">
+    <style>
+        .container {
+            max-width: 600px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>数据搜索</h1>
+    <div class="form-group">
+        <label for="category">一级分类：</label>
+        <select id="category" class="selectpicker form-control" onchange="loadDropdownOptions('subcategory', 'category')" title="请选择一级分类...">
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="subcategory">二级分类：</label>
+        <select id="subcategory" class="selectpicker form-control" onchange="loadDropdownOptions('name', 'subcategory')" title="请选择二级分类...">
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="name">你要查的信息是？</label>
+        <select id="name" class="selectpicker form-control" data-live-search="true">
+        </select>
+    </div>
+    <button id="searchButton" class="btn btn-primary" onclick="searchContent()">点击搜索</button>
+    <div id="content" class="mt-3"></div>
+</div>
+
+
+<!-- 引入 jQuery（Bootstrap 的依赖） -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<!-- 引入 Bootstrap JS -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+<!-- 引入 Bootstrap Select JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.18/js/bootstrap-select.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDropdownOptions('category'); // 初始加载一级分类
+    });
+
+    function loadDropdownOptions(field, filterField = '') {
+        let filterValue = filterField ? document.getElementById(filterField).value : '';
+        fetch(`/get_dropdown_option?field=${field}&${filterField}=${filterValue}`)
+            .then(response => response.json())
+            .then(data => {
+                let select = document.getElementById(field);
+                select.innerHTML = '';
+                data.forEach(item => {
+                    let option = document.createElement('option');
+                    option.value = item;
+                    option.textContent = item;
+                    select.appendChild(option);
+                });
+                $('.selectpicker').selectpicker('refresh');
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function searchContent() {
+        let category = document.getElementById('category').value;
+        let subcategory = document.getElementById('subcategory').value;
+        let name = document.getElementById('name').value;
+
+        fetch(`/get_content?category=${category}&subcategory=${subcategory}&name=${name}`)
+            .then(response => response.json())
+            .then(data => {
+                let contentDiv = document.getElementById('content');
+                contentDiv.innerHTML = '';
+                data.forEach(item => {
+                    let englishContent = document.createElement('p');
+                    englishContent.textContent = '英文内容: ' + item.english_content;
+                    let chineseContent = document.createElement('p');
+                    chineseContent.textContent = '中文内容: ' + item.chinese_content;
+                    contentDiv.appendChild(englishContent);
+                    contentDiv.appendChild(chineseContent);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+    }
+</script>
+</body>
+</html>
